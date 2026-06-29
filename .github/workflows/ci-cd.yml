@@ -137,6 +137,19 @@ jobs:
     name: Deploy
     runs-on: ubuntu-latest
     needs: [docker-build]
-    if: ${{ false }}
+    if: github.ref == 'refs/heads/main'
+
     steps:
-      - run: echo "Deploy disabled"
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd /opt/smart-ndc-pro
+            docker compose pull
+            docker compose up -d --force-recreate
+            docker image prune -f
