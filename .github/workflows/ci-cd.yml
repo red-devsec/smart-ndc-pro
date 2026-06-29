@@ -138,3 +138,5 @@ jobs:
     runs-on: ubuntu-latest
     needs: [docker-build]
     if: ${{ false }}
+    steps:
+      - run: echo "Deploy disabled"
