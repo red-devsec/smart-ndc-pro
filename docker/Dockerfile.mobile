@@ -1,0 +1,53 @@
+FROM node:20-bullseye-slim
+
+# Install Java 17 and required tools
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      openjdk-17-jdk-headless \
+      wget \
+      unzip \
+      git \
+      && rm -rf /var/lib/apt/lists/*
+
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+
+# Install Android SDK
+RUN mkdir -p /opt/android-sdk && cd /opt/android-sdk && \
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip && \
+    unzip -q commandlinetools-linux-11076708_latest.zip && \
+    rm commandlinetools-linux-11076708_latest.zip
+
+# Move cmdline-tools to the expected structure (cmdline-tools/latest/)
+RUN cd /opt/android-sdk && \
+    mv cmdline-tools cmdline-tools-tmp && \
+    mkdir -p cmdline-tools/latest && \
+    mv cmdline-tools-tmp/* cmdline-tools/latest/ && \
+    rm -rf cmdline-tools-tmp && \
+    ls -la cmdline-tools/latest/bin/
+
+ENV ANDROID_HOME=/opt/android-sdk
+ENV PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+
+# Accept licenses and install SDK components
+RUN yes | sdkmanager --licenses 2>&1 || true
+RUN sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools" 2>&1
+
+WORKDIR /app
+
+# Copy and install dependencies (including expo)
+COPY mobile/package*.json ./
+RUN npm install --legacy-peer-deps --no-audit 2>&1
+
+# Copy all project files
+COPY mobile/ .
+
+# Generate native Android project
+RUN npx expo prebuild --platform android 2>&1
+
+# Build release APK
+RUN cd android && ./gradlew assembleRelease 2>&1
+
+# Copy APK to /output
+RUN mkdir -p /output && \
+    find /app -name "*.apk" -type f -exec cp {} /output/ \; && \
+    ls -la /output/

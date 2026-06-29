@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="40" viewBox="0 0 150 40">
+  <rect x="0" y="0" width="40" height="40" rx="8" fill="#465FFF"/>
+  <text x="20" y="27" font-family="Arial,sans-serif" font-size="20" font-weight="bold" fill="#fff" text-anchor="middle">N</text>
+  <text x="48" y="22" font-family="Arial,sans-serif" font-size="15" font-weight="bold" fill="#1D2939">SMART NDC</text>
+</svg>

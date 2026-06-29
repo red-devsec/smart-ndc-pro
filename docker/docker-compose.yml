@@ -1,0 +1,120 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: ndcpro-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ndcpro
+      POSTGRES_PASSWORD: ndcpro2026
+      POSTGRES_DB: ndcpro_erp
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ndcpro"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ndcpro-cache
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: ndcpro-queue
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ndcpro
+      RABBITMQ_DEFAULT_PASS: ndcpro2026
+    ports:
+      - "5672:5672"
+      - "15672:15672"   # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: ndcpro-storage
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ndcpro
+      MINIO_ROOT_PASSWORD: ndcpro2026
+    ports:
+      - "9000:9000"    # API S3
+      - "9001:9001"    # Console
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: ndcpro-api
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: "postgresql://ndcpro:ndcpro2026@postgres:5432/ndcpro_erp?schema=public"
+      JWT_SECRET: "ndc-pro-erp-jwt-secret-2026-docker"
+      PORT: 3001
+      REDIS_URL: "redis://redis:6379"
+      RABBITMQ_URL: "amqp://ndcpro:ndcpro2026@rabbitmq:5672"
+      MINIO_ENDPOINT: "minio"
+      MINIO_PORT: "9000"
+      MINIO_ACCESS_KEY: "ndcpro"
+      MINIO_SECRET_KEY: "ndcpro2026"
+      MINIO_BUCKET: "ndcpro-uploads"
+      CORS_ORIGIN: "http://localhost:5173"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    command: >
+      sh -c "npx prisma migrate deploy && npx prisma db seed && npm start"
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    container_name: ndcpro-web
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  minio_data:

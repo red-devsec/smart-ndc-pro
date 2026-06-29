@@ -1,0 +1,12 @@
+**/node_modules
+**/.git
+.git
+node_modules
+backend/node_modules
+frontend/node_modules
+mobile/node_modules
+**/dist
+**/tmp
+**/.env
+*.md
+.gitignore

@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "SMART NDC",
+    "slug": "smartndc",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "smartndc",
+    "splash": { "backgroundColor": "#465FFF", "image": "./assets/icon.png" },
+    "ios": { "supportsTablet": true, "bundleIdentifier": "ma.smartndc.erp", "infoPlist": { "NSCameraUsageDescription": "Utilisé pour scanner les codes-barres", "NFCReaderUsageDescription": "Utilisé pour lire les badges RFID des employés" }, "entitlements": { "com.apple.developer.nfc.readersession.formats": ["NDEF", "TAG"] } },
+    "android": { "package": "ma.smartndc.erp", "adaptiveIcon": { "backgroundColor": "#465FFF" }, "permissions": ["CAMERA", "NFC"] },
+    "web": { "favicon": "./assets/favicon.png", "bundler": "metro" },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Autoriser SMART NDC à accéder à la caméra",
+          "microphonePermission": "Autoriser SMART NDC à accéder au micro",
+          "barcodeScannerEnabled": true
+        }
+      ]
+    ]
+  }
+}

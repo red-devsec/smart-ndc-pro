@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("EMPLOYE")
+  avatar    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  notifications Notification[]
+  sessions      Session[]
+}
+
+model Department {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  employees Employee[]
+}
+
+model Employee {
+  id           String   @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String   @unique
+  phone        String?
+  position     String
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  hireDate     DateTime
+  salary       Float
+  photo        String?
+  leaveBalance Float    @default(21)
+  leaveTaken   Float    @default(0)
+  lastAccrual  DateTime @default(now())
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  attendance       Attendance[]
+  leaves           Leave[]
+  stockMovements   StockMovement[]
+  performance      EmployeePerformance[]
+  certificates     CertificateRequest[]
+  paySlips         PaySlip[]
+  rfidCards        RfidCard[]
+}
+
+model RfidCard {
+  id         String    @id @default(uuid())
+  uid        String    @unique
+  employeeId String?
+  employee   Employee? @relation(fields: [employeeId], references: [id])
+  isActive   Boolean   @default(true)
+  assignedAt DateTime?
+}
+
+model Attendance {
+  id         String    @id @default(uuid())
+  employeeId String
+  employee   Employee  @relation(fields: [employeeId], references: [id])
+  checkIn    DateTime
+  checkOut   DateTime?
+  hoursWorked Float?
+  date       DateTime
+  location   String    @default("office")
+  status     String    @default("present")
+  rfidCardId String?
+  @@index([employeeId, date])
+}
+
+model Leave {
+  id          String   @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  type        String
+  startDate   DateTime
+  endDate     DateTime
+  reason      String
+  status      String   @default("pending")
+  documentUrl String?
+  createdAt   DateTime @default(now())
+  reviewedBy  String?
+}
+
+model ProductCategory {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  products Product[]
+}
+
+model Product {
+  id            String          @id @default(uuid())
+  name          String
+  description   String?
+  categoryId    String
+  category      ProductCategory @relation(fields: [categoryId], references: [id])
+  barcode       String          @unique
+  barcodeFormat String          @default("EAN-13")
+  price         Float
+  quantity      Int             @default(0)
+  minThreshold  Int             @default(5)
+  location      String?
+  image         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  stockMovements StockMovement[]
+}
+
+model StockMovement {
+  id         String   @id @default(uuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  type       String
+  reason     String
+  quantity   Int
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  timestamp  DateTime @default(now())
+  notes      String?
+  @@index([productId])
+  @@index([employeeId])
+  @@index([timestamp])
+}
+
+model EmployeePerformance {
+  id          String @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  month       Int
+  year        Int
+  salesCount  Int    @default(0)
+  totalValue  Float  @default(0)
+  damagedValue Float @default(0)
+  @@unique([employeeId, month, year])
+}
+
+model Alert {
+  id        String   @id @default(uuid())
+  type      String
+  message   String
+  severity  String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  relatedId String?
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model CertificateRequest {
+  id          String   @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  type        String
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  documentUrl String?
+}
+
+model PaySlip {
+  id          String   @id @default(uuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id])
+  month       Int
+  year        Int
+  baseSalary  Float
+  bonuses     Float    @default(0)
+  overtime    Float    @default(0)
+  paidLeave   Float    @default(0)
+  cnss        Float    @default(0)
+  tax         Float    @default(0)
+  netSalary   Float
+  status      String   @default("draft")
+  generatedAt DateTime @default(now())
+  @@unique([employeeId, month, year])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  id    String @id @default(uuid())
+  key   String @unique
+  value String
+}
