@@ -29,7 +29,10 @@
     "socket.io-client": "^4.8.0",
     "zustand": "^4.5.0",
     "@react-native-async-storage/async-storage": "^2.1.0",
-    "@react-native-community/netinfo": "^11.4.0"
+    "@react-native-community/netinfo": "^11.4.0",
+    "expo-build-properties": "~0.14.0",
+    "expo-notifications": "~0.30.0",
+    "react-native-reanimated": "~3.17.0"
   },
   "devDependencies": {
     "@types/react": "~19.1.10",

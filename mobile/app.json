@@ -13,12 +13,24 @@
     "web": { "favicon": "./assets/favicon.png", "bundler": "metro" },
     "plugins": [
       "expo-router",
+      "react-native-reanimated",
       [
         "expo-camera",
         {
           "cameraPermission": "Autoriser SMART NDC à accéder à la caméra",
           "microphonePermission": "Autoriser SMART NDC à accéder au micro",
           "barcodeScannerEnabled": true
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true,
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "minSdkVersion": 26
+          }
         }
       ]
     ]
