@@ -104,9 +104,9 @@ smart-ndc-pro/
 
 ## Aperçu
 
-![Dashboard Web](screenshot-dashboard.png)
+![Dashboard Web](docs/dashboard-web.png)
 
-![Application Mobile](screenshot-mobile.png)
+![Application Mobile](docs/mobile-app.png)
 
 ---
 
